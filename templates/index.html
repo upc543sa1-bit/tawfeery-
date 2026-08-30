@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer" />
+    <title>Tawfeery - توفيري | Pharmacy Price Comparison</title>
+    <meta name="description" content="Compare prices for medications across United Pharmacy, Nahdi Online, Al-Dawaa, Moaz Pharma and PharmaBrand to find the best deals.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v={{ app_version }}">
+    <meta name="app-version" content="{{ app_version }}">
+    <script>window.TAWFEERY_API="";</script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">⚕️</div>
+                <h1>توفيري <span>Tawfeery</span></h1>
+            </div>
+            <p class="subtitle">قارن أسعار الأدوية بين أشهر الصيدليات في السعودية</p>
+        </header>
+
+        <!-- Search Section -->
+        <main class="main-content">
+            <div class="search-container">
+                <form id="search-form" class="search-form">
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        class="search-input" 
+                        placeholder="ابحث عن دواء (مثال: Panadol, فيفادول)..." 
+                        autocomplete="off"
+                        required
+                    >
+                    <button type="submit" class="search-btn">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </button>
+                </form>
+                
+                <!-- Quick pills & History chips -->
+                <div class="search-chips">
+                    <span class="chip-label">بحث سريع:</span>
+                    <button class="quick-pill" data-query="Panadol">💊 بنادول</button>
+                    <button class="quick-pill" data-query="فيفادول">💊 فيفادول</button>
+                    <button class="quick-pill" data-query="سولبادين">💊 سولبادين</button>
+                    <button class="quick-pill" data-query="جافيسكون">💊 جافيسكون</button>
+                    <button class="quick-pill" data-query="كلاريتين">💊 كلاريتين</button>
+                </div>
+                <div id="search-history-container" class="search-chips hidden" style="margin-top: 0.6rem;">
+                    <span class="chip-label">سجل البحث:</span>
+                    <div id="search-history-items" style="display: inline-flex; flex-wrap: wrap; gap: 0.5rem;"></div>
+                    <button id="clear-history-btn" class="clear-history-btn">مسح</button>
+                </div>
+            </div>
+
+            <!-- Best Deals Section -->
+            <div id="deals-section" class="deals-section">
+                <div class="deals-header">
+                    <h2>🏆 أفضل العروض <span class="deals-subtitle">من الصيدليات الكبرى</span></h2>
+                    <span class="deals-count-badge" id="deals-count-badge"></span>
+                </div>
+
+                <!-- Pharmacy Store Filters -->
+                <div id="store-filters" class="store-filters">
+                    <button class="store-filter-btn active" data-store="all">
+                        <span class="sf-icon">🏥</span>
+                        <span class="sf-label">الكل</span>
+                        <span class="sf-count" id="sf-count-all">0</span>
+                    </button>
+                    <button class="store-filter-btn" data-store="United Pharmacy">
+                        <span class="sf-dot united"></span>
+                        <span class="sf-label">المتحدة</span>
+                        <span class="sf-count" id="sf-count-united">0</span>
+                    </button>
+                    <button class="store-filter-btn" data-store="Nahdi Online">
+                        <span class="sf-dot nahdi"></span>
+                        <span class="sf-label">النهدي</span>
+                        <span class="sf-count" id="sf-count-nahdi">0</span>
+                    </button>
+                    <button class="store-filter-btn" data-store="Al-Dawaa">
+                        <span class="sf-dot dawaa"></span>
+                        <span class="sf-label">الدواء</span>
+                        <span class="sf-count" id="sf-count-dawaa">0</span>
+                    </button>
+                    <button class="store-filter-btn" data-store="Moaz Pharma">
+                        <span class="sf-dot moaz"></span>
+                        <span class="sf-label">معاذ</span>
+                        <span class="sf-count" id="sf-count-moaz">0</span>
+                    </button>
+                    <button class="store-filter-btn" data-store="PharmaBrand">
+                        <span class="sf-dot pharmabrand"></span>
+                        <span class="sf-label">فارما براند</span>
+                        <span class="sf-count" id="sf-count-pharmabrand">0</span>
+                    </button>
+                </div>
+
+                <!-- Cheapest Pharmacy Widget -->
+                <div id="cheapest-pharmacy" class="cheapest-pharmacy hidden">
+                    <!-- Injected by JS -->
+                </div>
+
+                <div id="deals-grid" class="deals-grid">
+                    <!-- Deals injected by JS -->
+                </div>
+                <div id="deals-loading" class="deals-loading">جاري تحميل أفضل العروض...</div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="loading-state hidden">
+                <p id="loading-text">جاري البحث في الصيدليات...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error-state" class="error-state hidden">
+                <div class="error-icon">⚠️</div>
+                <p>عذراً، حدث خطأ أثناء البحث. يرجى المحاولة مرة أخرى.</p>
+            </div>
+
+            <!-- Results Section -->
+            <div id="results-container" class="results-container hidden">
+                <div class="results-header">
+                    <h2>نتائج البحث <span id="results-count" class="badge">0</span></h2>
+                    <div class="sort-indicator">الترتيب: الأقل سعراً أولاً</div>
+                </div>
+
+                <!-- ✨ Magic Analysis — per-store best + filter tabs -->
+                <div id="magic-analysis" class="magic-analysis hidden">
+                    <div class="magic-summary" id="magic-summary">
+                        <!-- Injected by JS: per-store mini cards -->
+                    </div>
+                    <div class="magic-tabs" id="magic-tabs">
+                        <button class="magic-tab active" data-filter="all">الكل <span class="tab-count" id="tab-count-all">0</span></button>
+                        <button class="magic-tab magic-tab-best" data-filter="best">✨ الأوفر <span class="tab-count" id="tab-count-best">0</span></button>
+                        <button class="magic-tab" data-filter="Nahdi Online"><span class="store-dot nahdi"></span> النهدي <span class="tab-count" id="tab-count-nahdi">0</span></button>
+                        <button class="magic-tab" data-filter="Al-Dawaa"><span class="store-dot dawaa"></span> الدواء <span class="tab-count" id="tab-count-dawaa">0</span></button>
+                        <button class="magic-tab" data-filter="United Pharmacy"><span class="store-dot united"></span> المتحدة <span class="tab-count" id="tab-count-united">0</span></button>
+                        <button class="magic-tab" data-filter="Moaz Pharma"><span class="store-dot moaz"></span> معاذ <span class="tab-count" id="tab-count-moaz">0</span></button>
+                        <button class="magic-tab" data-filter="PharmaBrand"><span class="store-dot pharmabrand"></span> فارما <span class="tab-count" id="tab-count-pharmabrand">0</span></button>
+                    </div>
+                    <div class="magic-insight" id="magic-insight"></div>
+                </div>
+                
+                <div id="results-grid" class="results-grid">
+                    <!-- Results will be injected here by JS -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>توفيري - لمقارنة أسعار الصيدليات الكبرى في السعودية (النهدي، الدواء، المتحدة، معاذ، فارما براند)</p>
+        </footer>
+    </div>
+
+    <!-- Floating Basket Toggle Button -->
+    <button id="basket-toggle" class="basket-toggle">
+        <span class="basket-toggle-icon">🛒</span>
+        <span id="basket-count" class="basket-count">0</span>
+    </button>
+
+    <!-- Smart Comparison Basket Drawer -->
+    <div id="basket-drawer" class="basket-drawer">
+        <div class="basket-header">
+            <h3><span>🛒</span> سلة التوفير الذكية</h3>
+            <button id="basket-close-btn" class="basket-close-btn">&times;</button>
+        </div>
+        <div class="basket-body">
+            <div id="basket-items-list">
+                <!-- Basket items injected here -->
+                <div class="empty-basket-state">
+                    <div class="basket-icon-large">🛒</div>
+                    <p>سلتك فارغة حالياً. أضف منتجات من نتائج البحث لمقارنة الأسعار الإجمالية بين الصيدليات.</p>
+                </div>
+            </div>
+            
+            <div id="basket-comparison-dashboard" class="basket-comparison-dashboard hidden">
+                <div class="dashboard-title">
+                    <span>📊 مقارنة الأسعار الإجمالية</span>
+                    <button id="clear-basket-btn" class="clear-basket-btn">تفريغ السلة</button>
+                </div>
+                <div class="store-price-table">
+                    <div class="store-price-row">
+                        <span class="store-name-col"><span class="store-dot nahdi"></span>صيدلية النهدي</span>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span id="basket-total-nahdi" class="store-total-col">0.00 SAR</span>
+                            <button class="checkout-store-btn" data-store="Nahdi Online" title="شراء من النهدي">🛒</button>
+                        </div>
+                    </div>
+                    <div class="store-price-row">
+                        <span class="store-name-col"><span class="store-dot dawaa"></span>صيدلية الدواء</span>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span id="basket-total-dawaa" class="store-total-col">0.00 SAR</span>
+                            <button class="checkout-store-btn" data-store="Al-Dawaa" title="شراء من الدواء">🛒</button>
+                        </div>
+                    </div>
+                    <div class="store-price-row">
+                        <span class="store-name-col"><span class="store-dot united"></span>المتحدة</span>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span id="basket-total-united" class="store-total-col">0.00 SAR</span>
+                            <button class="checkout-store-btn" data-store="United Pharmacy" title="شراء من المتحدة">🛒</button>
+                        </div>
+                    </div>
+                    <div class="store-price-row">
+                        <span class="store-name-col"><span class="store-dot moaz"></span>صيدلية معاذ</span>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span id="basket-total-moaz" class="store-total-col">0.00 SAR</span>
+                            <button class="checkout-store-btn" data-store="Moaz Pharma" title="شراء من معاذ">🛒</button>
+                        </div>
+                    </div>
+                    <div class="store-price-row">
+                        <span class="store-name-col"><span class="store-dot pharmabrand"></span>فارما براند</span>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span id="basket-total-pharmabrand" class="store-total-col">0.00 SAR</span>
+                            <button class="checkout-store-btn" data-store="PharmaBrand" title="شراء من فارما براند">🛒</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="basket-winner-banner" class="basket-winner-banner"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Comparison Modal -->
+    <div id="product-modal" class="modal-overlay">
+        <div class="modal-container">
+            <button id="modal-close-btn" class="modal-close-btn">&times;</button>
+            <div class="modal-grid">
+                <div class="modal-image-wrapper">
+                    <img id="modal-product-img" src="" alt="Product" class="modal-image">
+                </div>
+                <div class="modal-content-panel">
+                    <div class="modal-store-row">
+                        <span id="modal-store-badge" class="store-badge"></span>
+                        <span id="modal-offer-badge" class="offer-badge hidden"></span>
+                    </div>
+                    <h3 id="modal-product-title" class="modal-title"></h3>
+                    <div class="modal-price-box">
+                        <span class="modal-price-label">السعر في هذا المتجر:</span>
+                        <span id="modal-price-value" class="modal-price-value"></span>
+                    </div>
+                    <div class="modal-comparison-section">
+                        <h4>🔍 بدائل وأسعار في صيدليات أخرى:</h4>
+                        <div id="modal-equivalents-list" class="equivalents-list">
+                            <!-- Injected equivalents -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout/Purchase Modal -->
+    <div id="checkout-modal" class="modal-overlay">
+        <div class="modal-container" style="max-width: 500px;">
+            <button id="checkout-modal-close-btn" class="modal-close-btn">&times;</button>
+            <div class="modal-content-panel" style="padding: 2.2rem;">
+                <h3 id="checkout-modal-title" class="modal-title" style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <span>🛒</span> شراء السلة من <span id="checkout-store-name"></span>
+                </h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+                    انقر على الروابط بالأسفل لفتح صفحة كل منتج في موقع الصيدلية وإضافته لسلة التسوق:
+                </p>
+                
+                <div id="checkout-items-list" style="display: flex; flex-direction: column; gap: 0.8rem; max-height: 280px; overflow-y: auto; margin-bottom: 1.5rem; padding-left: 0.5rem; text-align: right;">
+                    <!-- Items will be injected here -->
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <button id="checkout-open-all-btn" class="buy-btn" style="background: linear-gradient(135deg, var(--primary-color) 0%, #059669 100%); border: none; width: 100%; cursor: pointer;">
+                        🚀 فتح جميع الروابط في علامات تبويب جديدة
+                    </button>
+                    <p style="font-size: 0.72rem; color: var(--text-muted); text-align: center; line-height: 1.4;">
+                        * يرجى السماح بالنوافذ المنبثقة (Popups) في متصفحك إذا لم تفتح جميع الروابط.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template for Result Card -->
+    <template id="result-card-template">
+        <div class="result-card">
+            <div class="best-price-badge hidden">أفضل سعر</div>
+            <div class="card-image-wrapper">
+                <img src="" alt="Product Image" class="product-image" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
+            </div>
+            <div class="card-content">
+                <div class="card-meta-row">
+                    <div class="store-badge"></div>
+                    <div class="card-actions">
+                        <button class="favorite-btn" title="حفظ في المفضلة">⭐</button>
+                        <button class="basket-btn" title="إضافة للمقارنة">🛒</button>
+                    </div>
+                </div>
+                <div class="offer-badge hidden"></div>
+                <h3 class="product-name"></h3>
+                <div class="price-row">
+                    <div class="price-container" style="display: flex; flex-direction: column; gap: 0.25rem; align-items: flex-start;">
+                        <div style="display: flex; align-items: baseline; gap: 0.3rem; flex-wrap: wrap;">
+                            <span class="price-currency">SAR</span>
+                            <span class="price-value"></span>
+                            <span class="price-value-strikethrough hidden"></span>
+                        </div>
+                        <div class="promo-price-tag hidden"></div>
+                    </div>
+                </div>
+                <a href="#" target="_blank" rel="noopener noreferrer" class="buy-btn">عرض في المتجر</a>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template for Skeleton Card -->
+    <template id="skeleton-card-template">
+        <div class="skeleton-card">
+            <div class="skeleton-shimmer"></div>
+            <div class="skeleton-img"></div>
+            <div class="skeleton-text short"></div>
+            <div class="skeleton-text long"></div>
+            <div class="skeleton-text medium"></div>
+            <div class="skeleton-button"></div>
+        </div>
+    </template>
+
+    <script>
+    (function() {
+        var v = document.querySelector('meta[name="app-version"]').content;
+        var stored = localStorage.getItem('tawfeery_version');
+        if (stored && stored !== v) {
+            Object.keys(localStorage).forEach(function(k) {
+                if (k.startsWith('tawfeery_')) localStorage.removeItem(k);
+            });
+        }
+        localStorage.setItem('tawfeery_version', v);
+    })();
+    </script>
+    <script src="{{ url_for('static', filename='script.js') }}?v={{ app_version }}"></script>
+</body>
+</html>
